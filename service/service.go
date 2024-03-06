@@ -152,7 +152,7 @@ func (u *UserService) AddAdmin(ctx context.Context,req *pb.UserSignUpRequest)(*p
 		Email: userRes.Email,
 	},nil
 }
-func (admin *UserService) GetAllUsers(em *pb.NoParam,srv pb.UserService_GetAllUsersServer)error{
+func (admin *UserService) GetAllUsers(em *pb.NoPara,srv pb.UserService_GetAllUsersServer)error{
 	span:=Tracer.StartSpan("get all users")
 	defer span.Finish()
 	users,err:=admin.Adapter.GetAllUsers()
@@ -171,7 +171,7 @@ func (admin *UserService) GetAllUsers(em *pb.NoParam,srv pb.UserService_GetAllUs
 	return nil
 }
 
-func (sup *UserService) GetAllAdmins(em *pb.NoParam,srv pb.UserService_GetAllAdminsServer)error{
+func (sup *UserService) GetAllAdmins(em *pb.NoPara,srv pb.UserService_GetAllAdminsServer)error{
 	span:=Tracer.StartSpan("get all admins grpc")
 	defer span.Finish()
 	admins,err:=sup.Adapter.GetAllAdmins()

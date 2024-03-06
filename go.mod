@@ -25,7 +25,7 @@ require (
 )
 
 require (
-	github.com/akshaybt001/proto_files v0.0.0-20240305071241-8f4ea124e23b
+	github.com/akshaybt001/proto_files v0.0.0-20240306050951-d56eeaddf7e7
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/joho/godotenv v1.5.1
