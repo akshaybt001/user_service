@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/akshaybt001/proto_files/pb"
@@ -82,6 +83,111 @@ func (u *UserService) UserLogin(ctc context.Context, req *pb.LoginRequest) (*pb.
 		Name:  res.Name,
 		Email: res.Email,
 	}, nil
+}
+
+func (u *UserService) AdminLogin(ctx context.Context,req *pb.LoginRequest)(*pb.UserResponse,error){
+	res,err:=u.Adapter.AdminLogin(req.Email)
+	if err!=nil{
+		return nil,err
+	}
+
+	if err:=helper.VerifyPassword(res.Password,req.Password);err!=nil{
+		return nil,err
+	}
+
+	return &pb.UserResponse{
+		Id: uint32(res.Id),
+		Name: res.Name,
+		Email: res.Email,
+	},nil
+}
+
+func (u *UserService) SupAdminLogin(ctx context.Context,req *pb.LoginRequest)(*pb.UserResponse,error){
+	res,err:=u.Adapter.SupAdminLogin(req.Email)
+	if err!=nil{
+		return nil,err
+	}
+
+	if err:=helper.VerifyPassword(res.Password,req.Password);err!=nil{
+		return nil,err
+	}
+	return &pb.UserResponse{
+		Id: uint32(res.Id),
+		Name: res.Name,
+		Email: res.Email,
+	},nil
+}
+
+func (u *UserService) AddAdmin(ctx context.Context,req *pb.UserSignUpRequest)(*pb.UserResponse,error){
+
+	if req.Name == ""{
+		return nil,errors.New("the name cannot be empty")
+	}
+	if req.Email == ""{
+		return nil,errors.New("the email cannot be empty")
+	}
+	if req.Password == ""{
+		return nil,errors.New("the password cannot be empty")
+	}
+
+	password,err:=helper.HashPassword(req.Password)
+	if err!=nil{
+		fmt.Println(err.Error())
+		return nil,err
+	}
+
+	reqq:=entities.Admin{
+		Name: req.Name,
+		Email: req.Email,
+		Password: password,
+	}
+
+	userRes,err:=u.Adapter.AddAdmin(reqq)
+	if err!=nil{
+		return nil,err
+	}
+	return &pb.UserResponse{
+		Id: uint32(userRes.Id),
+		Name: userRes.Name,
+		Email: userRes.Email,
+	},nil
+}
+func (admin *UserService) GetAllUsers(em *pb.NoParam,srv pb.UserService_GetAllUsersServer)error{
+	span:=Tracer.StartSpan("get all users")
+	defer span.Finish()
+	users,err:=admin.Adapter.GetAllUsers()
+	if err!=nil{
+		return err
+	}
+	for _,user:=range users{
+		if err= srv.Send(&pb.UserResponse{
+			Id: uint32(user.Id),
+			Name: user.Name,
+			Email: user.Email,
+		});err!=nil{
+			return err
+		}
+	}
+	return nil
+}
+
+func (sup *UserService) GetAllAdmins(em *pb.NoParam,srv pb.UserService_GetAllAdminsServer)error{
+	span:=Tracer.StartSpan("get all admins grpc")
+	defer span.Finish()
+	admins,err:=sup.Adapter.GetAllAdmins()
+	if err!=nil{
+		return err
+	}
+	for _,admin:=range admins{
+		if err=srv.Send(&pb.UserResponse{
+			Id: uint32(admin.Id),
+			Name: admin.Name,
+			Email: admin.Email,
+		});err!=nil{
+			return err
+		}
+	}
+	return nil
 }
 
 type HealthChecker struct {
